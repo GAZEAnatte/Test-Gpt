@@ -1,0 +1,95 @@
+-- ESP Script with Draggable Toggle Button for Roblox
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = game:GetService("Workspace").CurrentCamera
+local Player = Players.LocalPlayer
+
+-- Create the ESP GUI
+local espGui = Instance.new("ScreenGui")
+espGui.Parent = Player:WaitForChild("PlayerGui")
+
+-- Function to create ESP box for each player
+local function createESP(player)
+    local espBox = Instance.new("BillboardGui")
+    espBox.Parent = player.Character.Head
+    espBox.Adornee = player.Character.Head
+    espBox.Size = UDim2.new(0, 100, 0, 50)
+    espBox.StudsOffset = Vector3.new(0, 2, 0)
+    
+    local frame = Instance.new("Frame")
+    frame.Parent = espBox
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    frame.BackgroundTransparency = 0.5
+    
+    return espBox
+end
+
+-- Create the draggable toggle button
+local button = Instance.new("TextButton")
+button.Parent = espGui
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0, 10, 0, 10)
+button.Text = "Toggle ESP"
+button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Draggable functionality
+local dragging, dragInput, mousePos, dragStart
+
+local function updateButtonPosition(input)
+    local delta = input.Position - dragStart
+    button.Position = UDim2.new(button.Position.X.Scale, button.Position.X.Offset + delta.X, button.Position.Y.Scale, button.Position.Y.Offset + delta.Y)
+end
+
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        mousePos = input.Position
+        input.Changed:Connect(function()
+            if not input.UserInputState == Enum.UserInputState.Change then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+        updateButtonPosition(input)
+    end
+end)
+
+-- Function to create and toggle the ESP
+local function toggleESP()
+    local espEnabled = true
+    button.MouseButton1Click:Connect(function()
+        espEnabled = not espEnabled
+        if espEnabled then
+            button.Text = "Disable ESP"
+            -- Enable ESP for players
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("Head") then
+                    if not player.Character.Head:FindFirstChildOfClass("BillboardGui") then
+                        createESP(player)
+                    end
+                end
+            end
+        else
+            button.Text = "Enable ESP"
+            -- Disable ESP for players
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("Head") then
+                    local esp = player.Character.Head:FindFirstChildOfClass("BillboardGui")
+                    if esp then
+                        esp:Destroy()
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- Create the toggle functionality
+toggleESP()
