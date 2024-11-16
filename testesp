@@ -1,13 +1,10 @@
--- ESP Script with Draggable Toggle Button for Roblox
+-- ESP Script with Draggable Toggle Button and Mobile-Friendly Buttons for Fling, Fly, BTools in Roblox
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = game:GetService("Workspace").CurrentCamera
 local Player = Players.LocalPlayer
-
--- Create the ESP GUI
-local espGui = Instance.new("ScreenGui")
-espGui.Parent = Player:WaitForChild("PlayerGui")
+local Mouse = Player:GetMouse()
 
 -- Function to create ESP box for each player
 local function createESP(player)
@@ -26,70 +23,172 @@ local function createESP(player)
     return espBox
 end
 
--- Create the draggable toggle button
-local button = Instance.new("TextButton")
-button.Parent = espGui
-button.Size = UDim2.new(0, 200, 0, 50)
-button.Position = UDim2.new(0, 10, 0, 10)
-button.Text = "Toggle ESP"
-button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+-- Function to create the GUI
+local function createESPGui()
+    -- Create the ESP GUI
+    local espGui = Instance.new("ScreenGui")
+    espGui.Parent = Player:WaitForChild("PlayerGui")
+    
+    -- Create the draggable toggle button
+    local button = Instance.new("TextButton")
+    button.Parent = espGui
+    button.Size = UDim2.new(0, 200, 0, 50)
+    button.Position = UDim2.new(0, 10, 0, 10)
+    button.Text = "Toggle ESP"
+    button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
--- Draggable functionality
-local dragging, dragInput, mousePos, dragStart
+    -- Draggable functionality
+    local dragging, dragInput, mousePos, dragStart
 
-local function updateButtonPosition(input)
-    local delta = input.Position - dragStart
-    button.Position = UDim2.new(button.Position.X.Scale, button.Position.X.Offset + delta.X, button.Position.Y.Scale, button.Position.Y.Offset + delta.Y)
-end
+    local function updateButtonPosition(input)
+        local delta = input.Position - dragStart
+        button.Position = UDim2.new(button.Position.X.Scale, button.Position.X.Offset + delta.X, button.Position.Y.Scale, button.Position.Y.Offset + delta.Y)
+    end
 
-button.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        mousePos = input.Position
-        input.Changed:Connect(function()
-            if not input.UserInputState == Enum.UserInputState.Change then
-                dragging = false
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            mousePos = input.Position
+            input.Changed:Connect(function()
+                if not input.UserInputState == Enum.UserInputState.Change then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    button.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+            updateButtonPosition(input)
+        end
+    end)
+
+    -- Function to toggle ESP on or off
+    local function toggleESP()
+        local espEnabled = true
+        button.MouseButton1Click:Connect(function()
+            espEnabled = not espEnabled
+            if espEnabled then
+                button.Text = "Disable ESP"
+                -- Enable ESP for players
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player.Character and player.Character:FindFirstChild("Head") then
+                        if not player.Character.Head:FindFirstChildOfClass("BillboardGui") then
+                            createESP(player)
+                        end
+                    end
+                end
+            else
+                button.Text = "Enable ESP"
+                -- Disable ESP for players
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player.Character and player.Character:FindFirstChild("Head") then
+                        local esp = player.Character.Head:FindFirstChildOfClass("BillboardGui")
+                        if esp then
+                            esp:Destroy()
+                        end
+                    end
+                end
             end
         end)
     end
-end)
 
-button.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-        updateButtonPosition(input)
+    -- Call the toggle ESP function
+    toggleESP()
+
+    -- Mobile Support: Add buttons for Fly, Fling, and BTools
+    local function createMobileButton(text, position, action)
+        local mobileButton = Instance.new("TextButton")
+        mobileButton.Parent = espGui
+        mobileButton.Size = UDim2.new(0, 200, 0, 50)
+        mobileButton.Position = position
+        mobileButton.Text = text
+        mobileButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        mobileButton.MouseButton1Click:Connect(action)
     end
-end)
 
--- Function to create and toggle the ESP
-local function toggleESP()
-    local espEnabled = true
-    button.MouseButton1Click:Connect(function()
-        espEnabled = not espEnabled
-        if espEnabled then
-            button.Text = "Disable ESP"
-            -- Enable ESP for players
-            for _, player in pairs(Players:GetPlayers()) do
-                if player.Character and player.Character:FindFirstChild("Head") then
-                    if not player.Character.Head:FindFirstChildOfClass("BillboardGui") then
-                        createESP(player)
-                    end
-                end
-            end
-        else
-            button.Text = "Enable ESP"
-            -- Disable ESP for players
-            for _, player in pairs(Players:GetPlayers()) do
-                if player.Character and player.Character:FindFirstChild("Head") then
-                    local esp = player.Character.Head:FindFirstChildOfClass("BillboardGui")
-                    if esp then
-                        esp:Destroy()
-                    end
-                end
-            end
+    -- Fly button action
+    local flying = false
+    local bodyVelocity
+    local function fly()
+        if flying then
+            return
         end
+        flying = true
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = Player.Character.HumanoidRootPart
+
+        local bodyGyro = Instance.new("BodyGyro")
+        bodyGyro.CFrame = Player.Character.HumanoidRootPart.CFrame
+        bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
+        bodyGyro.Parent = Player.Character.HumanoidRootPart
+
+        local bodyThrust = 50
+        RunService.RenderStepped:Connect(function(_, dt)
+            if flying then
+                bodyVelocity.Velocity = Vector3.new(0, bodyThrust, 0)
+            end
+        end)
+    end
+
+    local function stopFlying()
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+        end
+        flying = false
+    end
+
+    createMobileButton("Fly", UDim2.new(0, 10, 0, 70), function()
+        if flying then
+            stopFlying()
+        else
+            fly()
+        end
+    end)
+
+    -- Fling button action
+    local function fling()
+        Mouse.Button1Down:Connect(function()
+            local target = Mouse.Target
+            if target then
+                local flingForce = Instance.new("BodyVelocity")
+                flingForce.MaxForce = Vector3.new(500000, 500000, 500000)
+                flingForce.Velocity = (target.Position - Player.Character.HumanoidRootPart.Position).unit * 100
+                flingForce.Parent = target
+                game.Debris:AddItem(flingForce, 0.5)
+            end
+        end)
+    end
+
+    createMobileButton("Fling", UDim2.new(0, 10, 0, 130), function()
+        fling()
+    end)
+
+    -- BTools button action
+    local function btools()
+        Mouse.Button1Down:Connect(function()
+            local target = Mouse.Target
+            if target and target.Parent then
+                if target.Parent:FindFirstChildOfClass("Model") then
+                    target.Parent:Destroy()
+                end
+            end
+        end)
+    end
+
+    createMobileButton("BTools", UDim2.new(0, 10, 0, 190), function()
+        btools()
     end)
 end
 
--- Create the toggle functionality
-toggleESP()
+-- Re-create the GUI when the player respawns
+Player.CharacterAdded:Connect(function()
+    -- Ensure the ESP GUI is created after respawn
+    createESPGui()
+end)
+
+-- Initial creation of the GUI when the game starts
+createESPGui()
