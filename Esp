@@ -1,0 +1,141 @@
+local _0x2c11 = game:GetService("Players")
+local _0x23d9 = game:GetService("RunService")
+local _0x5c9b = game:GetService("Workspace").CurrentCamera
+local _0x5c1b = game:GetService("UserInputService")
+local _0x43a0 = true
+local _0x68c7 = true
+local _0x5d9c = Instance.new("ScreenGui")
+_0x5d9c.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create main frame for the GUI
+local _0x6a2c = Instance.new("Frame")
+_0x6a2c.Parent = _0x5d9c
+_0x6a2c.Size = UDim2.new(0, 200, 0, 70)
+_0x6a2c.Position = UDim2.new(0, 10, 0, 10)
+_0x6a2c.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+_0x6a2c.BorderSizePixel = 0
+_0x6a2c.BackgroundTransparency = 0.2
+_0x6a2c.ZIndex = 2
+
+-- Create title text label
+local _0x4a22 = Instance.new("TextLabel")
+_0x4a22.Parent = _0x6a2c
+_0x4a22.Size = UDim2.new(1, 0, 0.3, 0)
+_0x4a22.Text = "ESP Toggle"
+_0x4a22.TextSize = 20
+_0x4a22.TextColor3 = Color3.fromRGB(255, 255, 255)
+_0x4a22.BackgroundTransparency = 1
+_0x4a22.TextAlign = Enum.TextXAlignment.Center
+_0x4a22.TextYAlignment = Enum.TextYAlignment.Center
+
+-- Create toggle button
+local _0x3a2e = Instance.new("TextButton")
+_0x3a2e.Parent = _0x6a2c
+_0x3a2e.Size = UDim2.new(1, 0, 0.7, 0)
+_0x3a2e.Position = UDim2.new(0, 0, 0.3, 0)
+_0x3a2e.Text = "Enable ESP"
+_0x3a2e.TextSize = 18
+_0x3a2e.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+_0x3a2e.TextColor3 = Color3.fromRGB(255, 255, 255)
+_0x3a2e.BorderSizePixel = 0
+_0x3a2e.AutoButtonColor = true
+
+-- Create draggable button
+local draggableButton = Instance.new("TextButton")
+draggableButton.Parent = _0x5d9c
+draggableButton.Size = UDim2.new(0, 50, 0, 50)
+draggableButton.Position = UDim2.new(0, 10, 0, 90)
+draggableButton.Text = "Drag"
+draggableButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+draggableButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+draggableButton.BorderSizePixel = 0
+
+-- Create a function to handle dragging
+local dragging, dragInput, dragStart, startPos
+draggableButton.MouseButton1Down:Connect(function(input)
+    dragging = true
+    dragStart = input.Position
+    startPos = _0x6a2c.Position
+    input.Changed:Connect(function()
+        if dragging then
+            local delta = input.Position - dragStart
+            _0x6a2c.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end)
+
+draggableButton.MouseButton1Up:Connect(function()
+    dragging = false
+end)
+
+-- Toggle function for visibility of the GUI
+draggableButton.MouseButton1Click:Connect(function()
+    if _0x5d9c.Enabled then
+        _0x5d9c.Enabled = false
+    else
+        _0x5d9c.Enabled = true
+    end
+end)
+
+-- Toggle function for ESP
+_0x3a2e.MouseButton1Click:Connect(function()
+    _0x43a0 = not _0x43a0
+    _0x68c7 = not _0x68c7
+    _0x3a2e.Text = _0x43a0 and "Disable ESP" or "Enable ESP"
+    _0x3a2e.BackgroundColor3 = _0x43a0 and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+
+    for _, _0x56a6 in ipairs(_0x2c11:GetPlayers()) do
+        if _0x56a6.Character and _0x56a6.Character:FindFirstChild("Head") then
+            if _0x43a0 then
+                if not _0x56a6.Character.Head:FindFirstChildOfClass("BillboardGui") then
+                    local _0x2f70 = Instance.new("BillboardGui")
+                    _0x2f70.Parent = _0x56a6.Character
+                    _0x2f70.Adornee = _0x56a6.Character.Head
+                    _0x2f70.Size = UDim2.new(0, 100, 0, 50)
+                    _0x2f70.StudsOffset = Vector3.new(0, 3, 0)
+                    _0x2f70.AlwaysOnTop = true
+
+                    local _0x1d4e = Instance.new("TextLabel")
+                    _0x1d4e.Parent = _0x2f70
+                    _0x1d4e.Size = UDim2.new(1, 0, 1, 0)
+                    _0x1d4e.BackgroundTransparency = 1
+                    _0x1d4e.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    _0x1d4e.Text = _0x56a6.Name
+                    _0x1d4e.TextSize = 14
+                end
+            else
+                local _0x2f70 = _0x56a6.Character.Head:FindFirstChildOfClass("BillboardGui")
+                if _0x2f70 then _0x2f70:Destroy() end
+            end
+
+            local _0x3d1d = game.Workspace:FindFirstChild(_0x56a6.Name .. "Trace")
+            if _0x68c7 and _0x56a6.Character and _0x56a6.Character:FindFirstChild("Head") then
+                if not _0x3d1d then
+                    local _0x5c1e = Instance.new("Part")
+                    _0x5c1e.Name = _0x56a6.Name .. "Trace"
+                    _0x5c1e.Parent = game.Workspace
+                    _0x5c1e.Anchored = true
+                    _0x5c1e.CanCollide = false
+                    _0x5c1e.Size = Vector3.new(0.2, 0.2, 0.2)
+                    _0x5c1e.Color = Color3.fromRGB(255, 0, 0)
+                    _0x5c1e.Material = Enum.Material.Neon
+                    local _0x5933 = _0x5c9b.CFrame.Position
+                    local _0x2b4e = _0x56a6.Character.Head.Position
+                    _0x5c1e.CFrame = CFrame.new(_0x5933, _0x2b4e) * CFrame.new(0, 0, -(_0x5933 - _0x2b4e).Magnitude / 2)
+                    _0x5c1e.Size = Vector3.new(0.2, 0.2, (_0x5933 - _0x2b4e).Magnitude)
+                end
+            elseif not _0x68c7 and _0x3d1d then
+                _0x3d1d:Destroy()
+            end
+        end
+    end
+end)
+
+_0x23d9.Heartbeat:Connect(function()
+    for _, _0x56a6 in ipairs(_0x2c11:GetPlayers()) do
+        if _0x56a6.Character and _0x56a6.Character:FindFirstChild("Head") then
+            if _0x43a0 then
+                if not _0x56a6.Character.Head:FindFirstChildOfClass("BillboardGui") then
+                    local _0x2f70 = Instance.new("BillboardGui")
+                    _0x2f70.Parent = _0x56a6.Character
+                    _0x2f70.Ad
